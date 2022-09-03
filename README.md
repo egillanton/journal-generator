@@ -68,3 +68,9 @@ Successfully generated 24 journal entries to file: C:\Users\egill\Desktop\Journa
 * Exported file: [Journal_output.xlsx](./example%20files/Journal_ouput.xlsx). 
 
 Note that 5 entry lines are generate for each entry.
+
+
+## Future Improvements
+* Have a separate config JSON file for all accounts (as seen in [PaydayJournalUtils](./Utils/PaydayJournalUtils.cs)).
+* Add application to export it directly to Payday API when their API allows for it.
+* Handle better the accounts that don't appear in the settings  
