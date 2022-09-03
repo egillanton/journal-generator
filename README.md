@@ -47,4 +47,4 @@ Best way to ensure you are using the date and number standards that is supported
 
 
 ### Example file
-You can see how the input file should look like if you open up [Journal.xlsx](example files/Journal.xlsx). 
+You can see how the input file should look like if you open up [Journal.xlsx](./example%20files/Journal.xlsx). 
