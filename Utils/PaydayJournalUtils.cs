@@ -15,25 +15,50 @@ namespace JournalGenerator.Utils
 		        'senderTitle':'AIRBNB PAYMENTS LUXEMBOURG S.A.',
 		        'value': 'Airbnb Experience',
 		        'commission': '0.2',
-		        'accountNumber': '2381'
+		        'accountNumber': '2381',
+                'bankCommission': '680'
 	        },
 	        {
 		        'senderTitle':'GetYourGuide Deutsch',
 		        'value': 'GetYourGuide',
 		        'commission': '0.3',
-		        'accountNumber': '2382'
+		        'accountNumber': '2382',
+                'bankCommission': '680'
 	        },
 	        {
-		        'senderTitle':'VIATOR LIMITED',
+		        'senderTitle':'VIATOR LIMITED 7',
 		        'value': 'Viator',
 		        'commission': '0.255',
-		        'accountNumber': '2383'
+		        'accountNumber': '2383',
+                'bankCommission': '680'
 	        },
 	        {
 		        'senderTitle':'TRUST MY TRAVEL LIMITED',
 		        'value': 'Bókun',
 		        'commission': '0.015',
-		        'accountNumber': '2384'
+		        'accountNumber': '2384',
+                'bankCommission': '680'
+	        },
+            {
+		        'senderTitle':'TRUST MY TRAVEL LIMITED THE C',
+		        'value': 'Bókun',
+		        'commission': '0.015',
+		        'accountNumber': '2384',
+                'bankCommission': '0'
+	        },
+            {
+		        'senderTitle':'Booknordics As',
+		        'value': 'BookNordics AS',
+		        'commission': '0.2',
+		        'accountNumber': '2385',
+                'bankCommission': '680'
+	        },
+            {
+		        'senderTitle':'IPS EHF',
+		        'value': 'Iceland Pro Services',
+		        'commission': '0.15',
+		        'accountNumber': '2385',
+                'bankCommission': '680'
 	        }]
         }";
 
@@ -72,11 +97,13 @@ namespace JournalGenerator.Utils
                             break;
                         }
 
-                        DateTime date = DateTime.FromOADate(long.Parse(dateString));
+                        DateTime date = DateTime.ParseExact(dateString, "dd.MM.yy", CultureInfo.InvariantCulture, DateTimeStyles.None);
 
                         int day = date.Day;
                         int month = date.Month;
                         int year = date.Year;
+
+                        string ledgerEntryDate = $"{day}.{month}.{year}";
 
                         decimal destinationAmount = decimal.Parse(destinationAmountString.Replace(".", ""), CultureInfo.InvariantCulture);
 
@@ -94,8 +121,8 @@ namespace JournalGenerator.Utils
                         string nextLineDateString = worksheet.GetValue<string>(rowNumber + 1, 1);
                         if (!string.IsNullOrWhiteSpace(nextLineDateString))
                         {
+                            DateTime nextLineDate = DateTime.ParseExact(nextLineDateString, "dd.MM.yy", CultureInfo.InvariantCulture, DateTimeStyles.None);
 
-                            DateTime nextLineDate = DateTime.FromOADate(long.Parse(nextLineDateString));
                             int nextLineDay = nextLineDate.Day;
                             int nextLineMonth = nextLineDate.Month;
                             int nextLineYear = nextLineDate.Year;
@@ -134,71 +161,72 @@ namespace JournalGenerator.Utils
                         decimal amount = Math.Round(destinationAmount, 0, MidpointRounding.AwayFromZero);
                         decimal amountInclVat = Math.Round(paydayJournalSetting.Commission != 1 ? (destinationAmount / (1 - paydayJournalSetting.Commission)) : 0, MidpointRounding.AwayFromZero);
                         decimal vat = amountInclVat - amount;
-                        decimal bankFee = 680M;
 
-                        // Add 5 entries for each row
-                        journalEntries.AddRange(new List<PaydayJournalEntry> {
-                            new PaydayJournalEntry
-                            {
-                                EntryNr = rowNumber - 1,
-                                Date = $"{day}/{month}/{year}",
-                                DateTimeValue = new DateTime(year, month, day),
-                                Description = description,
-                                Type = 1,
-                                Key = "1110",
-                                Amount = amountInclVat * -1, // Credit
-		                        VAT = "11",
-		                        //Reference = reference,
-		                        ReceiverKey = string.Empty
-                            },
-                            new PaydayJournalEntry
-                            {
-                                EntryNr = rowNumber - 1,
-                                Date = $"{day}/{month}/{year}",
-                                Description = description,
-                                Type = 1,
-                                Key = paydayJournalSetting.AccountNumber,
-                                Amount = vat,
-                                VAT = "",
-                                Reference = reference,
-                                ReceiverKey = string.Empty
-                            },
-                            new PaydayJournalEntry
-                            {
-                                EntryNr = rowNumber - 1,
-                                Date = $"{day}/{month}/{year}",
-                                Description = description,
-                                Type = 1,
-                                Key = "3200",
-                                Amount = amount,
-                                VAT = "",
-                                Reference = reference,
-                                ReceiverKey = string.Empty
-                            },
-                            new PaydayJournalEntry
-                            {
-                                EntryNr = rowNumber - 1,
-                                Date = $"{day}/{month}/{year}",
-                                Description = description,
-                                Type = 1,
-                                Key = "2990",
-                                Amount = bankFee,
-                                VAT = "",
-                                Reference = reference,
-                                ReceiverKey = string.Empty
-                            },
-                            new PaydayJournalEntry
-                            {
-                                EntryNr = rowNumber - 1,
-                                Date = $"{day}/{month}/{year}",
-                                Description = description,
-                                Type = 1,
-                                Key = "3200",
-                                Amount = bankFee * -1, // Credit
-		                        VAT = "",
-                                Reference = reference,
-                                ReceiverKey = string.Empty
-                            }
+                        journalEntries.Add(new PaydayJournalEntry
+                        {
+                            EntryNr = rowNumber - 1,
+                            Date = ledgerEntryDate,
+                            DateTimeValue = new DateTime(year, month, day),
+                            Description = description,
+                            Type = 1,
+                            Key = "1110",
+                            Amount = amountInclVat * -1, // Credit
+                            VAT = "11",
+                            //Reference = reference,
+                            ReceiverKey = string.Empty
+                        });
+
+
+                        journalEntries.Add(new PaydayJournalEntry
+                        {
+                            EntryNr = rowNumber - 1,
+                            Date = ledgerEntryDate,
+                            Description = description,
+                            Type = 1,
+                            Key = paydayJournalSetting.AccountNumber,
+                            Amount = vat,
+                            VAT = "",
+                            Reference = reference,
+                            ReceiverKey = string.Empty
+                        });
+
+                        journalEntries.Add(new PaydayJournalEntry
+                        {
+                            EntryNr = rowNumber - 1,
+                            Date = ledgerEntryDate,
+                            Description = description,
+                            Type = 1,
+                            Key = "3200",
+                            Amount = amount,
+                            VAT = "",
+                            Reference = reference,
+                            ReceiverKey = string.Empty
+                        });
+
+                        journalEntries.Add(new PaydayJournalEntry
+                        {
+                            EntryNr = rowNumber - 1,
+                            Date = ledgerEntryDate,
+                            Description = description,
+                            Type = 1,
+                            Key = "2990",
+                            Amount = paydayJournalSetting.BankCommission > 0 ? paydayJournalSetting.BankCommission : 0,
+                            VAT = "",
+                            Reference = reference,
+                            ReceiverKey = string.Empty
+                        });
+
+                        journalEntries.Add(new PaydayJournalEntry
+                        {
+                            EntryNr = rowNumber - 1,
+                            Date = ledgerEntryDate,
+                            Description = description,
+                            Type = 1,
+                            Key = "3200",
+                            Amount = paydayJournalSetting.BankCommission > 0 ? paydayJournalSetting.BankCommission * -1 : 0, // Credit
+                            VAT = "",
+                            Reference = reference,
+                            ReceiverKey = string.Empty
                         });
                     }
                 }
@@ -221,7 +249,7 @@ namespace JournalGenerator.Utils
                 int sheetNr = 1;
                 int entryNr = 1;
 
-                foreach (var batch in journalEntries.Chunk(9*5)) // 9 Entries, each 5 lines
+                foreach (var batch in journalEntries.Chunk(9 * 5)) // 9 Entries, each 5 lines
                 {
                     var w = package.Workbook.Worksheets.Add($"Sheet{sheetNr}");
                     sheetNr++;
@@ -240,16 +268,19 @@ namespace JournalGenerator.Utils
                     {
                         foreach (var journalEntry in subBatch)
                         {
-                            rowNumber++;
-                            w.Cells[rowNumber, 1].Value = entryNr;
-                            w.Cells[rowNumber, 2].Value = journalEntry.Date;
-                            w.Cells[rowNumber, 3].Value = journalEntry.Description;
-                            w.Cells[rowNumber, 4].Value = journalEntry.Type;
-                            w.Cells[rowNumber, 5].Value = journalEntry.Key;
-                            w.Cells[rowNumber, 6].Value = journalEntry.Amount;
-                            w.Cells[rowNumber, 7].Value = journalEntry.VAT;
-                            //w.Cells[rowNumber, 8].Value = journalEntry.Reference;
-                            w.Cells[rowNumber, 9].Value = journalEntry.ReceiverKey;
+                            if (journalEntry.Amount != 0)
+                            {
+                                rowNumber++;
+                                w.Cells[rowNumber, 1].Value = entryNr;
+                                w.Cells[rowNumber, 2].Value = journalEntry.Date;
+                                w.Cells[rowNumber, 3].Value = journalEntry.Description;
+                                w.Cells[rowNumber, 4].Value = journalEntry.Type;
+                                w.Cells[rowNumber, 5].Value = journalEntry.Key;
+                                w.Cells[rowNumber, 6].Value = journalEntry.Amount;
+                                w.Cells[rowNumber, 7].Value = journalEntry.VAT;
+                                //w.Cells[rowNumber, 8].Value = journalEntry.Reference;
+                                w.Cells[rowNumber, 9].Value = journalEntry.ReceiverKey;
+                            }
                         }
                         entryNr++;
                     }
@@ -298,6 +329,9 @@ namespace JournalGenerator.Utils
 
         [JsonProperty("accountNumber")]
         public string AccountNumber { get; set; }
+
+        [JsonProperty("bankCommission")]
+        public decimal BankCommission { get; set; }
     }
 
     public partial class Temperatures

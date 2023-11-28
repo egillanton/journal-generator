@@ -45,13 +45,13 @@ while (true)
 
 static void GenerateJournalFromIslandsbankiForeignPayments()
 {
-    string filePath;
+    string filePath;    
     FileInfo fileInfo;
     while (true)
     {
         Console.WriteLine("Enter file path: ");
-        filePath = Console.ReadLine();
-        //filePath = @"C:\Users\egill\Desktop\Journal.xlsx"; // DEBUG
+        //filePath = Console.ReadLine();
+        filePath = @"C:\Users\egill\Desktop\October.xlsx"; // DEBUG
         if (!File.Exists(filePath))
         {
             Console.ForegroundColor = ConsoleColor.Red;
